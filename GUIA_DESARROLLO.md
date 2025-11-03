@@ -160,6 +160,8 @@ Cuando ejecutas `func start`, los logs aparecen en la consola.
 - [x] Configurar .gitignore para excluir venv/ y local.settings.json ✅
 - [x] Probar la función localmente con `func start` ✅
 - [x] Crear README.md ✅
+- [x] Publicar función en Azure ✅
+- [x] Actualizar documentación con información de Azure ✅
 
 ### Nota sobre Azure Functions Core Tools
 
@@ -214,3 +216,93 @@ git push -u origin main
 
 ### Verificar que se subió correctamente
 Ve a tu repositorio en GitHub y verifica que todos los archivos estén ahí (excepto venv/ y local.settings.json que están en .gitignore).
+
+---
+
+## ☁️ Desplegar en Azure
+
+### Prerrequisitos
+- Azure CLI instalado (`az --version`)
+- Autenticado en Azure (`az login`)
+- Azure Functions Core Tools instalado
+- Function App creada en Azure Portal
+
+### Crear Function App en Azure
+
+**Opción 1: Desde Azure Portal**
+1. Ve a [Azure Portal](https://portal.azure.com)
+2. Busca "Function App" → "Create"
+3. Configuración recomendada:
+   - Resource group: `rg-suitech-redsys`
+   - Function App name: (único globalmente, ej: `suitechredsys`)
+   - Publish: `Code`
+   - Runtime stack: `Python`
+   - Version: `3.12`
+   - OS: `Linux` (recomendado para Python)
+   - Plan: `Consumption (Serverless)`
+   - Region: `West Europe`
+4. Crear la Function App
+
+**Opción 2: Con Azure CLI**
+```bash
+# Cambiar a la suscripción correcta
+az account set --subscription "TU-SUBSCRIPTION-ID"
+
+# Crear resource group
+az group create --name rg-suitech-redsys --location "West Europe"
+
+# Crear storage account (si es necesario)
+az storage account create --name stsuitechredsys<numero> --location "West Europe" --resource-group rg-suitech-redsys --sku Standard_LRS
+
+# Crear Function App
+az functionapp create --resource-group rg-suitech-redsys --consumption-plan-location westeurope --runtime python --runtime-version 3.12 --functions-version 4 --name suitechredsys --storage-account stsuitechredsys<numero> --os-type Linux
+```
+
+### Publicar la función
+
+Desde el directorio del proyecto:
+
+```bash
+func azure functionapp publish <nombre-function-app> --python
+```
+
+**Ejemplo:**
+```bash
+func azure functionapp publish suitechredsys --python
+```
+
+### Verificar el despliegue
+
+Después de publicar, verás la URL de invocación:
+```
+Functions in suitechredsys:
+    EncryptData - [httpTrigger]
+        Invoke url: https://suitechredsys.azurewebsites.net/api/encryptdata
+```
+
+### Probar la función en Azure
+
+**Con PowerShell:**
+```powershell
+$response = Invoke-WebRequest -Uri "https://suitechredsys.azurewebsites.net/api/encryptdata" -Method POST -ContentType "application/json" -Body '{"data":"hola mundo","encryptType":"SHA-256","encryptKey":"clave123"}'; $response.Content
+```
+
+### Configuración de Azure
+
+**Suscripción utilizada:** ISV 5000
+**Resource Group:** rg-suitech-redsys
+**Region:** West Europe
+**Function App:** suitechredsys
+**URL de Producción:** https://suitechredsys.azurewebsites.net/api/encryptdata
+
+### Notas importantes sobre Azure
+
+- ⚠️ **Proveedores de recursos:** Asegúrate de que `Microsoft.Storage` y `Microsoft.Web` estén registrados en tu suscripción:
+  ```bash
+  az provider register --namespace Microsoft.Storage
+  az provider register --namespace Microsoft.Web
+  ```
+
+- ⚠️ **Autenticación de publicación:** Si encuentras problemas al publicar, verifica las credenciales de publicación en Azure Portal (Configuration → Deployment Center)
+
+- ⚠️ **Costos:** El plan Consumption solo cobra por ejecuciones. Revisa los precios en [Azure Functions Pricing](https://azure.microsoft.com/pricing/details/functions/)

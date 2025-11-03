@@ -64,11 +64,44 @@ func start
 http://localhost:7071/api/EncryptData
 ```
 
+## ☁️ Despliegue en Azure
+
+### Requisitos previos
+- Azure CLI instalado y autenticado (`az login`)
+- Suscripción de Azure activa
+- Azure Functions Core Tools instalado
+
+### Publicar la función
+
+1. **Crear Function App en Azure Portal** (o usar Azure CLI):
+   - Resource group: `rg-suitech-redsys`
+   - Function App name: (debe ser único globalmente)
+   - Runtime: Python 3.12
+   - OS: Linux
+   - Plan: Consumption (Serverless)
+
+2. **Publicar desde local:**
+```bash
+func azure functionapp publish <nombre-function-app> --python
+```
+
+### URL de Producción
+
+La función está desplegada en:
+```
+https://suitechredsys.azurewebsites.net/api/encryptdata
+```
+
 ## 📡 Uso de la API
 
-### Endpoint
+### Endpoint Local
 ```
 POST http://localhost:7071/api/EncryptData
+```
+
+### Endpoint Producción
+```
+POST https://suitechredsys.azurewebsites.net/api/encryptdata
 ```
 
 ### Headers
@@ -106,9 +139,14 @@ Content-Type: application/json
 
 ## 🧪 Ejemplos
 
-### Con PowerShell
+### Con PowerShell (Local)
 ```powershell
 $response = Invoke-WebRequest -Uri "http://localhost:7071/api/EncryptData" -Method POST -ContentType "application/json" -Body '{"data":"hola mundo","encryptType":"SHA-256","encryptKey":"clave123"}'; $response.Content
+```
+
+### Con PowerShell (Producción)
+```powershell
+$response = Invoke-WebRequest -Uri "https://suitechredsys.azurewebsites.net/api/encryptdata" -Method POST -ContentType "application/json" -Body '{"data":"hola mundo","encryptType":"SHA-256","encryptKey":"clave123"}'; $response.Content
 ```
 
 ### Con curl
