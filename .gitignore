@@ -26,7 +26,7 @@ obj/
 *.cache
 
 # IDEs
-.vscode/
+
 .idea/
 *.swp
 *.swo
