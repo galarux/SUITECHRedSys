@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 import uuid
 import os
 from azure.data.tables import TableServiceClient
@@ -27,6 +27,34 @@ def get_table_client():
     
     return table_client
 
+
+def get_entity_by_order_code(order_code: str) -> Optional[Dict[str, Any]]:
+    """Recupera una entidad usando el código de pedido almacenado."""
+
+    table_client = get_table_client()
+
+    # Intento 1: nuevo campo Ds_Merchant_Order
+    query_filter = "Ds_Merchant_Order eq @order"
+    parameters = {"order": order_code}
+    results = list(table_client.query_entities(query_filter, parameters=parameters))
+    if results:
+        return results[0]
+
+    # Intento 2: compatibilidad con registros antiguos (RowKey / Id)
+    legacy_filter = "RowKey eq @legacy"
+    legacy_params = {"legacy": order_code}
+    results = list(table_client.query_entities(legacy_filter, parameters=legacy_params))
+    if results:
+        return results[0]
+
+    id_filter = "Id eq @identifier"
+    id_params = {"identifier": order_code}
+    results = list(table_client.query_entities(id_filter, parameters=id_params))
+    if results:
+        return results[0]
+
+    return None
+
 def save_to_table(
     url_bc: str,
     auth_type: str,
@@ -34,7 +62,10 @@ def save_to_table(
     password: str,
     encrypt_type: str,
     encrypt_key: str,
-    error: str = None
+    ds_merchant_order: str | None = None,
+    bc_method: str | None = None,
+    bc_path: str | None = None,
+    error: str | None = None,
 ) -> str:
     """
     Guarda una entidad en Azure Table Storage usando el SDK directamente.
@@ -74,6 +105,15 @@ def save_to_table(
         "EncryptType": encrypt_type,
         "EncryptKey": encrypt_key
     }
+
+    if ds_merchant_order:
+        entity["Ds_Merchant_Order"] = ds_merchant_order
+    
+    if bc_method:
+        entity["BCMethod"] = bc_method
+    
+    if bc_path:
+        entity["BCPath"] = bc_path
     
     # Agregar error si existe
     if error:
@@ -88,4 +128,5 @@ def save_to_table(
         import logging
         logging.error(f"Error al guardar en tabla: {str(e)}")
         return None
+
 
