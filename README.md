@@ -101,6 +101,27 @@ SUITECHRedSys/
 - npm (para instalar Azure Functions Core Tools).
 - Azure CLI (para despliegue en Azure).
 
+### Configuración de variables de entorno (Azure Settings)
+
+Cuando despliegues en Azure (o el cliente lo haga en su propio tenant) debes definir estas variables en **Function App > Configuration > Application settings**. Todas son obligatorias para la integración con RedSys/PayGold:
+
+- `REDSYS_MERCHANT_CODE`: código de comercio facilitado por RedSys (ej. `999008881`).
+- `REDSYS_TERMINAL`: número de terminal (ej. `1`).
+- `REDSYS_SHA256_KEY`: clave SHA-256 del TPV (valor Base64 del entorno correspondiente). No la subas al repositorio.
+- `REDSYS_REST_URL`: endpoint de RedSys para `trataPeticionREST`. Ej. entorno pruebas: `https://sis-t.redsys.es:25443/sis/rest/trataPeticionREST`. En producción: `https://sis.redsys.es/sis/rest/trataPeticionREST`.
+- `REDSYS_NOTIFICATION_URL`: URL pública de la Function `DecryptAndRedirect` (por defecto, la propia Function App: `https://<function-app>.azurewebsites.net/api/decryptandredirect`). RedSys la usará como webhook.
+- `REDSYS_NOTIFICATION_KEY`: function key que usarás para proteger el endpoint si lo registras en la URL (alternativamente puedes configurar la key sólo en RedSys y no exponerla).
+- `REDSYS_MAIL_FROM` / `REDSYS_MAIL_SUBJECT` (opcional): valores por defecto para los campos de contacto si tu flujo los necesita.
+- `REDSYS_SHA256_KEY`: clave SHA-256 del TPV (Base64). Imprescindible para validar y firmar peticiones. **Debe configurarse tanto en pruebas como en producción.**
+
+**Cómo configurarlas:**
+
+1. Portal Azure → Function App → `Configuration` → `Application settings` → `+ New application setting`.
+2. Añade cada par `Name` / `Value` y guarda.
+3. Pulsa `Save` y reinicia la Function App para aplicar los cambios.
+
+Para desarrollo local puedes crear un archivo `local.settings.json` (no se versiona) con la misma estructura en `Values`.
+
 ### Dependencias Python
 
 `requirements.txt`
@@ -194,6 +215,7 @@ https://suitechredsys.azurewebsites.net/api/encryptdata
 
 - Local: `POST http://localhost:7071/api/EncryptData`
 - Producción: `POST https://suitechredsys.azurewebsites.net/api/encryptdata?code=<function-key>`
+- Notificación RedSys (nuevo endpoint): `POST https://suitechredsys.azurewebsites.net/api/decryptandredirect?code=<function-key>`
 
 ### Headers
 
@@ -207,7 +229,8 @@ Content-Type: application/json
 {
   "data": "texto a encriptar",
   "encryptType": "SHA-256",
-  "encryptKey": "clave secreta"
+  "encryptKey": "clave secreta",
+  "Ds_Merchant_Order": "DOR00002"
 }
 ```
 
@@ -216,6 +239,7 @@ Content-Type: application/json
 - `data` (obligatorio): texto plano.
 - `encryptType` (opcional): `SHA-256` o `SHA-512`. Valor predeterminado `SHA-256`.
 - `encryptKey` (opcional): clave adicional para generar el hash. Por defecto cadena vacía.
+- `Ds_Merchant_Order` (recomendado): identificador del pedido que se enviará a RedSys. Se almacena con el mismo nombre en la tabla (`Ds_Merchant_Order`) y se usará posteriormente para localizar la información cuando RedSys llame a `DecryptAndRedirect`.
 
 ### Respuestas
 
@@ -256,6 +280,16 @@ Errores (400/500):
     -H "Content-Type: application/json" \
     -d '{"data":"hola mundo","encryptType":"SHA-256","encryptKey":"clave123"}'
   ```
+
+- **curl (Webhook RedSys en desarrollo)**
+
+  ```bash
+  curl -X POST http://localhost:7071/api/DecryptAndRedirect \
+    -H "Content-Type: application/json" \
+    -d '{"Ds_SignatureVersion":"HMAC_SHA256_V1","Ds_MerchantParameters":"...","Ds_Signature":"..."}'
+  ```
+
+  La función verifica la firma (`signatureValid`) comparando `Ds_Signature` con el valor calculado mediante la clave `REDSYS_SHA256_KEY`. Si el `Ds_Order` coincide con una entrada en `EncryptDataLogs`, se devuelve en `bcEntity` la información asociada al registro.
 
 - **Postman**
   - Método: POST

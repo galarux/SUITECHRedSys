@@ -32,6 +32,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         encrypt_type = body.get("encryptType", "SHA-256")
         encrypt_key = body.get("encryptKey", "")
         encrypt_data = body.get("encryptData")
+        bc_method = body.get("bcMethod")
+        bc_path = body.get("bcPath")
+        ds_merchant_order = body.get("Ds_Merchant_Order") or body.get("dsMerchantOrder")
 
         # Validar campos requeridos
         if not url_bc:
@@ -103,7 +106,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     user=user,
                     password=password,
                     encrypt_type=encrypt_type,
-                    encrypt_key=encrypt_key
+                    encrypt_key=encrypt_key,
+                    ds_merchant_order=ds_merchant_order,
+                    bc_method=bc_method,
+                    bc_path=bc_path
                 )
             except Exception as table_error:
                 logging.warning(f"Error al guardar en tabla: {str(table_error)}")
@@ -131,6 +137,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     password=body.get("pass", ""),
                     encrypt_type=body.get("encryptType", "SHA-256"),
                     encrypt_key=body.get("encryptKey", ""),
+                    ds_merchant_order=body.get("Ds_Merchant_Order") or body.get("dsMerchantOrder"),
+                    bc_method=body.get("bcMethod"),
+                    bc_path=body.get("bcPath"),
                     error=error_msg
                 )
         except Exception as log_error:
