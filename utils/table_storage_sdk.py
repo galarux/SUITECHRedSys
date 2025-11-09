@@ -19,14 +19,11 @@ def get_table_client():
         raise ValueError("AzureWebJobsStorage no está configurado")
     
     table_service = TableServiceClient.from_connection_string(conn_str=connection_string)
+
+    # Asegurar que la tabla existe
+    table_service.create_table_if_not_exists(table_name="EncryptDataLogs")
+
     table_client = table_service.get_table_client(table_name="EncryptDataLogs")
-    
-    # Crear la tabla si no existe
-    try:
-        table_client.create_table()
-    except Exception:
-        # La tabla ya existe, ignorar el error
-        pass
     
     return table_client
 

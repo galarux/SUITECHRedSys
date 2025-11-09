@@ -116,8 +116,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     ds_merchant_order=ds_merchant_order
                 )
             except Exception as table_error:
-                logging.error(f"Error al guardar en tabla: {str(table_error)}")
-                raise
+                logging.error("Error al guardar en tabla: %s", table_error)
+                return func.HttpResponse(
+                    json.dumps({"error": "No se pudo persistir la configuración en Table Storage"}),
+                    mimetype="application/json",
+                    status_code=500
+                )
         
         return func.HttpResponse(
             json.dumps({
