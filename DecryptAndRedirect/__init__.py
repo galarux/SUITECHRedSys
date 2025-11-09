@@ -4,9 +4,9 @@ import base64
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import hmac
 from urllib.parse import unquote
 
@@ -74,7 +74,8 @@ def parse_datetime(date_value: str | None, hour_value: str | None) -> str | None
     if not date_value or not hour_value:
         return None
     try:
-        return datetime.strptime(f"{date_value} {hour_value}", "%d/%m/%Y %H:%M").isoformat()
+        dt = datetime.strptime(f"{date_value} {hour_value}", "%d/%m/%Y %H:%M")
+        return dt.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
     except ValueError:
         logging.warning("No se pudo convertir fecha/hora '%s' '%s'", date_value, hour_value)
         return None
@@ -92,15 +93,44 @@ def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str)
         "authorizationCode": decoded_params.get("Ds_AuthorisationCode"),
         "securePayment": decoded_params.get("Ds_SecurePayment") == "1",
         "cardNumber": decoded_params.get("Ds_Card_Number"),
+        "cardCountry": decoded_params.get("Ds_Card_Country"),
+        "cardBrand": decoded_params.get("Ds_Card_Brand"),
+        "cardTypology": decoded_params.get("Ds_Card_Typology"),
+        "processedPayMethod": decoded_params.get("Ds_ProcessedPayMethod"),
         "consumerLanguage": decoded_params.get("Ds_ConsumerLanguage"),
         "merchantData": decoded_params.get("Ds_MerchantData"),
         "notificationDateTime": parse_datetime(decoded_params.get("Ds_Date"), decoded_params.get("Ds_Hour")),
+        "titular": decoded_params.get("Ds_Titular"),
         "signature": signature,
-        "jsonPayload": json.dumps(decoded_params, ensure_ascii=False),
     }
 
     # Filtrar None para no enviar campos vacíos innecesarios
     return {key: value for key, value in payload.items() if value is not None}
+
+
+def escape_odata_key(value: str) -> str:
+    return value.replace("'", "''")
+
+
+def upload_stream_property(
+    entity: Dict[str, Any],
+    base_path: Optional[str],
+    order: str,
+    stream_name: str,
+    content: str,
+    content_type: str,
+) -> None:
+    if not base_path:
+        return
+    escaped_order = escape_odata_key(order)
+    stream_path = f"{base_path.rstrip('/')}" f"('{escaped_order}')/{stream_name}/$value"
+    call_business_central(
+        entity,
+        method="PUT",
+        relative_path=stream_path,
+        payload=content,
+        headers={"Content-Type": content_type},
+    )
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -232,6 +262,30 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "payload": bc_content,
             }
             bc_response.raise_for_status()
+
+            if bc_method == "POST" and bc_status < 400:
+                try:
+                    upload_stream_property(
+                        entity,
+                        bc_path,
+                        ds_order,
+                        "jsonPayload",
+                        json.dumps(decoded_params, ensure_ascii=False),
+                        "application/json; charset=utf-8",
+                    )
+                except Exception:  # pylint: disable=broad-except
+                    logging.exception("No se pudo subir jsonPayload a Business Central")
+                try:
+                    upload_stream_property(
+                        entity,
+                        bc_path,
+                        ds_order,
+                        "rawParameters",
+                        ds_params_b64,
+                        "text/plain; charset=utf-8",
+                    )
+                except Exception:  # pylint: disable=broad-except
+                    logging.exception("No se pudo subir rawParameters a Business Central")
         except HTTPError as http_error:
             status_code = http_error.response.status_code if http_error.response else 502
             body = http_error.response.text if http_error.response else str(http_error)

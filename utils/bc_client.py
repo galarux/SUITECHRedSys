@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
@@ -27,11 +27,37 @@ def parse_bc_url(url_bc: str) -> Tuple[str, str, str]:
     return tenant, environment, base
 
 
+PayloadType = Optional[Union[Dict[str, Any], list, str, bytes]]
+
+
+def _prepare_request_components(
+    payload: PayloadType,
+    headers: Optional[Dict[str, str]],
+) -> Tuple[Optional[Dict[str, str]], Optional[Union[str, bytes]]]:
+    request_headers = {"Accept": "application/json"}
+    if headers:
+        request_headers.update(headers)
+
+    if payload is None:
+        return request_headers, None
+
+    if isinstance(payload, (dict, list)):
+        request_headers.setdefault("Content-Type", "application/json")
+        return request_headers, json.dumps(payload)
+
+    if isinstance(payload, (str, bytes)):
+        # Permitir que quien llama defina Content-Type; si no, asumir texto plano
+        request_headers.setdefault("Content-Type", "text/plain; charset=utf-8")
+        return request_headers, payload
+
+    raise BusinessCentralError(f"Tipo de payload no soportado: {type(payload)!r}")
+
+
 def _request_oauth(
     entity: Dict[str, Any],
     method: str,
     url: str,
-    payload: Optional[Dict[str, Any]],
+    payload: PayloadType,
     headers: Optional[Dict[str, str]],
 ) -> requests.Response:
     client_id = entity.get("User")
@@ -57,18 +83,10 @@ def _request_oauth(
     if not access_token:
         raise BusinessCentralError("Respuesta de token inválida (sin access_token).")
 
-    auth_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json",
-    }
-
-    if payload is not None:
-        auth_headers["Content-Type"] = "application/json"
-
-    if headers:
-        auth_headers.update(headers)
-
-    data = json.dumps(payload) if payload is not None else None
+    auth_headers = {"Authorization": f"Bearer {access_token}"}
+    request_headers, data = _prepare_request_components(payload, headers)
+    if request_headers:
+        auth_headers.update(request_headers)
     return requests.request(method, url, headers=auth_headers, data=data, timeout=30)
 
 
@@ -76,7 +94,7 @@ def _request_basic(
     entity: Dict[str, Any],
     method: str,
     url: str,
-    payload: Optional[Dict[str, Any]],
+    payload: PayloadType,
     headers: Optional[Dict[str, str]],
 ) -> requests.Response:
     user = entity.get("User")
@@ -85,22 +103,22 @@ def _request_basic(
     if not user or not password:
         raise BusinessCentralError("Entidad BC incompleta para Basic Auth (User/Pass requeridos).")
 
-    request_headers = {"Accept": "application/json"}
-    if payload is not None:
-        request_headers["Content-Type"] = "application/json"
-
-    if headers:
-        request_headers.update(headers)
-
-    data = json.dumps(payload) if payload is not None else None
-    return requests.request(method, url, headers=request_headers, data=data, auth=(user, password), timeout=30)
+    request_headers, data = _prepare_request_components(payload, headers)
+    return requests.request(
+        method,
+        url,
+        headers=request_headers,
+        data=data,
+        auth=(user, password),
+        timeout=30,
+    )
 
 
 def call_business_central(
     entity: Dict[str, Any],
     method: str = "GET",
     relative_path: Optional[str] = None,
-    payload: Optional[Dict[str, Any]] = None,
+    payload: PayloadType = None,
     headers: Optional[Dict[str, str]] = None,
 ) -> requests.Response:
     """Realiza la llamada a Business Central usando la configuración almacenada."""
@@ -111,16 +129,35 @@ def call_business_central(
     if method not in SUPPORTED_METHODS:
         raise BusinessCentralError(f"Método HTTP '{method}' no soportado.")
 
-    _, _, base_url = parse_bc_url(entity["URLBC"])
-    url = entity["URLBC"]
-    if relative_path:
-        url = f"{base_url}/{relative_path.lstrip('/')}"
-
     auth_type = (entity.get("AuthType") or "").lower()
     if auth_type == "oauth":
+        _, _, base_url = parse_bc_url(entity["URLBC"])
+        url = entity["URLBC"]
+        if relative_path:
+            url = f"{base_url}/{relative_path.lstrip('/')}"
         return _request_oauth(entity, method, url, payload, headers)
     if auth_type == "basic":
+        url = _build_basic_url(entity["URLBC"], relative_path)
         return _request_basic(entity, method, url, payload, headers)
 
     raise BusinessCentralError(f"AuthType '{auth_type}' no soportado.")
+
+
+def _build_basic_url(base_url: str, relative_path: Optional[str]) -> str:
+    if not base_url:
+        raise BusinessCentralError("Entidad sin URLBC definida.")
+
+    base = base_url.rstrip("/")
+    if not relative_path:
+        return base
+
+    if relative_path.lower().startswith(("http://", "https://")):
+        return relative_path
+
+    normalized_base = base.lower()
+    normalized_path = relative_path.lstrip("/").lower()
+    if normalized_base.endswith(normalized_path):
+        return base
+
+    return f"{base}/{relative_path.lstrip('/')}"
 
