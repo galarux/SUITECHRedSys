@@ -13,7 +13,7 @@ from urllib.parse import unquote
 import azure.functions as func
 from requests import HTTPError
 
-from utils.bc_client import BusinessCentralError, call_business_central
+from utils.bc_client import BusinessCentralError, call_business_central, split_bc_url
 from utils.crypto import (
     compute_redsys_signature,
     decode_redsys_parameters,
@@ -114,16 +114,19 @@ def escape_odata_key(value: str) -> str:
 
 def upload_stream_property(
     entity: Dict[str, Any],
-    base_path: Optional[str],
+    relative_resource: Optional[str],
     order: str,
     stream_name: str,
     content: str,
     content_type: str,
 ) -> None:
-    if not base_path:
+    if not relative_resource:
         return
     escaped_order = escape_odata_key(order)
-    stream_path = f"{base_path.rstrip('/')}" f"('{escaped_order}')/{stream_name}/$value"
+    normalized_resource = relative_resource.strip("/")
+    if not normalized_resource:
+        return
+    stream_path = f"{normalized_resource}" f"('{escaped_order}')/{stream_name}/$value"
     call_business_central(
         entity,
         method="PUT",
@@ -238,15 +241,25 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     bc_call_summary: Dict[str, Any] | None = None
     if signature_valid:
-        bc_method = (entity.get("BCMethod") or "POST").upper()
-        bc_path = entity.get("BCPath")
         bc_payload = build_bc_payload(decoded_params, ds_signature, ds_order)
+        endpoint_url = entity.get("URLBC", "")
+        base_url, relative_path = split_bc_url(endpoint_url)
+        legacy_path = entity.get("BCPath")
+        if not relative_path and legacy_path:
+            relative_path = legacy_path
+        call_entity = dict(entity)
+        call_entity["URLBC"] = base_url or endpoint_url
+        bc_method = (entity.get("BCMethod") or "POST").upper()
+        final_url = endpoint_url
+        if relative_path and (base_url or endpoint_url):
+            base_for_summary = base_url or endpoint_url
+            final_url = f"{base_for_summary.rstrip('/')}/{relative_path.lstrip('/')}"
 
         try:
             bc_response = call_business_central(
-                entity,
+                call_entity,
                 method=bc_method,
-                relative_path=bc_path,
+                relative_path=relative_path,
                 payload=bc_payload,
             )
             bc_status = bc_response.status_code
@@ -258,7 +271,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             bc_call_summary = {
                 "status": bc_status,
                 "method": bc_method,
-                "path": bc_path,
+                "url": final_url,
                 "payload": bc_content,
             }
             bc_response.raise_for_status()
@@ -266,8 +279,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             if bc_method == "POST" and bc_status < 400:
                 try:
                     upload_stream_property(
-                        entity,
-                        bc_path,
+                        call_entity,
+                        relative_path,
                         ds_order,
                         "jsonPayload",
                         json.dumps(decoded_params, ensure_ascii=False),
@@ -277,8 +290,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     logging.exception("No se pudo subir jsonPayload a Business Central")
                 try:
                     upload_stream_property(
-                        entity,
-                        bc_path,
+                        call_entity,
+                        relative_path,
                         ds_order,
                         "rawParameters",
                         ds_params_b64,

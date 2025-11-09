@@ -25,20 +25,16 @@
 ### 4.1 `EncryptData`
 - Endpoint: `POST /api/EncryptData`.
 - Campos mínimos en el body:
-  - `urlBC`: URL del endpoint de BC (ej. `https://api.businesscentral.dynamics.com/v2.0/<tenant>/<env>/api/v2.0/notifications`).
+- `urlBC`: URL completa del endpoint de BC (ej. `https://api.businesscentral.dynamics.com/v2.0/<tenant>/<env>/api/v2.0/notifications`).
   - `authType`: `oAuth` o `Basic`.
   - `user`: para `oAuth` = `client_id`; para `Basic` = usuario.
   - `pass`: para `oAuth` = `client_secret`; para `Basic` = contraseña.
   - `encryptData`: texto a cifrar.
   - `Ds_Merchant_Order`: código de pedido empleado para vincular la notificación.
-  - Opcionales: `encryptType`, `encryptKey`, `bcMethod` (por defecto `POST`), `bcPath` (ruta relativa en BC).
+- Opcionales: `encryptType`, `encryptKey`.
 - La función cifra `encryptData`, guarda la configuración en Table Storage (`EncryptDataLogs`) incluyendo credenciales, método y path, y devuelve `encryptedData` + `id`.
 
-### 4.2 `BCCompanies`
-- Endpoint auxiliar para pruebas: `GET /api/bc/companies`.
-- Lee el registro de Table Storage usando `order`, obtiene token con la configuración guardada y llama a BC (`method/path` configurables). Devuelve la respuesta de Business Central.
-
-### 4.3 `DecryptAndRedirect`
+### 4.2 `DecryptAndRedirect`
 - Endpoint: `POST /api/DecryptAndRedirect`.
 - Procesa notificaciones RedSys:
   - Extrae `Ds_MerchantParameters` y `Ds_Signature`.
@@ -78,7 +74,7 @@
 
 ## 6. Flujo end-to-end
 1. Registrar app en Entra ID + BC, obtener token y verificar en Postman.
-2. Guardar configuración mediante `EncryptData` (incluye `bcMethod` y `bcPath` de la API personalizada).
+2. Guardar configuración mediante `EncryptData` enviando la URL completa de la API personalizada.
 3. Configurar en RedSys la URL de notificación: `https://<function-app>.azurewebsites.net/api/DecryptAndRedirect?code=<function-key>`.
 4. RedSys envía notificación.
 5. `DecryptAndRedirect` valida, llama a BC y la Page API inserta la notificación en la tabla.
