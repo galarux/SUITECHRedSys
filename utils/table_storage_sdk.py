@@ -2,8 +2,11 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 import uuid
 import os
+import logging
 from azure.data.tables import TableServiceClient
 from azure.core.exceptions import ResourceNotFoundError
+
+from utils.crypto import encrypt_secret
 
 def get_table_client():
     """
@@ -91,6 +94,13 @@ def save_to_table(
     # RowKey: Usaremos el ID único para facilitar búsquedas posteriores
     row_key = unique_id
     
+    encrypted_password = ""
+    pass_encrypted = False
+    if password:
+        if not encrypt_key:
+            raise ValueError("encryptKey es obligatorio para proteger las credenciales.")
+        encrypted_password = encrypt_secret(password, encrypt_key)
+        pass_encrypted = True
     entity = {
         "PartitionKey": partition_key,
         "RowKey": row_key,
@@ -99,7 +109,8 @@ def save_to_table(
         "URLBC": url_bc,
         "AuthType": auth_type,
         "User": user,
-        "Pass": password,
+        "Pass": encrypted_password,
+        "PassEncrypted": pass_encrypted,
         "EncryptType": encrypt_type,
         "EncryptKey": encrypt_key
     }

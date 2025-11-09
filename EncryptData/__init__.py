@@ -91,6 +91,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=400
             )
 
+        if not encrypt_key:
+            error_msg = "Missing field 'encryptKey'"
+            return func.HttpResponse(
+                json.dumps({"error": error_msg}),
+                mimetype="application/json",
+                status_code=400
+            )
+
         # Encriptar los datos
         result = encrypt(encrypt_data, encrypt_key, encrypt_type)
         
@@ -108,7 +116,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     ds_merchant_order=ds_merchant_order
                 )
             except Exception as table_error:
-                logging.warning(f"Error al guardar en tabla: {str(table_error)}")
+                logging.error(f"Error al guardar en tabla: {str(table_error)}")
+                raise
         
         return func.HttpResponse(
             json.dumps({

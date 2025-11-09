@@ -31,7 +31,7 @@
   - `pass`: para `oAuth` = `client_secret`; para `Basic` = contraseña.
   - `encryptData`: texto a cifrar.
   - `Ds_Merchant_Order`: código de pedido empleado para vincular la notificación.
-- Opcionales: `encryptType`, `encryptKey`.
+- Opcionales: `encryptType`. `encryptKey` es obligatorio: usa la clave Base64 del TPV para firmar y cifrar las credenciales almacenadas.
 - La función cifra `encryptData`, guarda la configuración en Table Storage (`EncryptDataLogs`) incluyendo credenciales, método y path, y devuelve `encryptedData` + `id`.
 
 ### 4.2 `DecryptAndRedirect`

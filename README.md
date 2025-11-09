@@ -238,7 +238,7 @@ Content-Type: application/json
 
 - `data` (obligatorio): texto plano.
 - `encryptType` (opcional): `SHA-256` o `SHA-512`. Valor predeterminado `SHA-256`.
-- `encryptKey` (opcional): clave adicional para generar el hash. Por defecto cadena vacía.
+- `encryptKey`: clave Base64 del TPV (REDSYS_SHA256_KEY). Se usa tanto para firmar como para cifrar las credenciales antes de almacenarlas.
 - `Ds_Merchant_Order` (recomendado): identificador del pedido que se enviará a RedSys. Se almacena con el mismo nombre en la tabla (`Ds_Merchant_Order`) y se usará posteriormente para localizar la información cuando RedSys llame a `DecryptAndRedirect`.
 
 ### Respuestas

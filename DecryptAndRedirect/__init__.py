@@ -14,6 +14,7 @@ import azure.functions as func
 from requests import HTTPError
 
 from utils.bc_client import BusinessCentralError, call_business_central, split_bc_url
+from utils.crypto import decrypt_secret
 from utils.crypto import (
     compute_redsys_signature,
     decode_redsys_parameters,
@@ -250,6 +251,22 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         call_entity = dict(entity)
         call_entity["URLBC"] = base_url or endpoint_url
         bc_method = (entity.get("BCMethod") or "POST").upper()
+        if call_entity.get("PassEncrypted") and call_entity.get("Pass") and call_entity.get("EncryptKey"):
+            try:
+                call_entity["Pass"] = decrypt_secret(call_entity["Pass"], call_entity["EncryptKey"])
+            except Exception as exc:
+                logging.exception("No se pudo descifrar las credenciales de Business Central")
+                return func.HttpResponse(
+                    json.dumps(
+                        {
+                            "error": "No se pudieron descifrar las credenciales de Business Central",
+                            "detail": str(exc),
+                        },
+                        ensure_ascii=False,
+                    ),
+                    mimetype="application/json",
+                    status_code=500,
+                )
         final_url = endpoint_url
         if relative_path and (base_url or endpoint_url):
             base_for_summary = base_url or endpoint_url

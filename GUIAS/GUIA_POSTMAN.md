@@ -33,7 +33,7 @@
 | `pass` | string | ✅ Sí | Contraseña para autenticación |
 | `encryptData` | string | ✅ Sí | Datos a encriptar |
 | `encryptType` | string | ❌ No | Tipo de encriptación: `"SHA-256"` (por defecto) o `"SHA-512"` |
-| `encryptKey` | string | ❌ No | Clave para encriptar/desencriptar (por defecto: cadena vacía) |
+| `encryptKey` | string | ✅ Sí | Clave Base64 del TPV. Se usa para firmar y cifrar las credenciales almacenadas. |
 
 ## Ejemplo de Respuesta Exitosa
 
