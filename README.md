@@ -43,5 +43,3 @@ Variables obligatorias en la Function App: `AzureWebJobsStorage`, `REDSYS_SHA256
 
 ## Notas
 - La tabla `EncryptDataLogs` se crea automáticamente.
-- Los cambios en `GUIAS/` se ignoran en Git (solo documentación interna).
-- Si necesitas reconfigurar credenciales, repite la llamada a `EncryptData` con el nuevo pedido.
