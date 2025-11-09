@@ -9,6 +9,7 @@ local.settings.json
 
 # Python
 __pycache__/
+tools/__pycache__/
 *.py[cod]
 *$py.class
 *.so

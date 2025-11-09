@@ -2,8 +2,11 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 import uuid
 import os
+import logging
 from azure.data.tables import TableServiceClient
 from azure.core.exceptions import ResourceNotFoundError
+
+from utils.crypto import encrypt_secret
 
 def get_table_client():
     """
@@ -16,14 +19,11 @@ def get_table_client():
         raise ValueError("AzureWebJobsStorage no está configurado")
     
     table_service = TableServiceClient.from_connection_string(conn_str=connection_string)
+
+    # Asegurar que la tabla existe
+    table_service.create_table_if_not_exists(table_name="EncryptDataLogs")
+
     table_client = table_service.get_table_client(table_name="EncryptDataLogs")
-    
-    # Crear la tabla si no existe
-    try:
-        table_client.create_table()
-    except Exception:
-        # La tabla ya existe, ignorar el error
-        pass
     
     return table_client
 
@@ -63,8 +63,6 @@ def save_to_table(
     encrypt_type: str,
     encrypt_key: str,
     ds_merchant_order: str | None = None,
-    bc_method: str | None = None,
-    bc_path: str | None = None,
     error: str | None = None,
 ) -> str:
     """
@@ -93,6 +91,13 @@ def save_to_table(
     # RowKey: Usaremos el ID único para facilitar búsquedas posteriores
     row_key = unique_id
     
+    encrypted_password = ""
+    pass_encrypted = False
+    if password:
+        if not encrypt_key:
+            raise ValueError("encryptKey es obligatorio para proteger las credenciales.")
+        encrypted_password = encrypt_secret(password, encrypt_key)
+        pass_encrypted = True
     entity = {
         "PartitionKey": partition_key,
         "RowKey": row_key,
@@ -101,19 +106,14 @@ def save_to_table(
         "URLBC": url_bc,
         "AuthType": auth_type,
         "User": user,
-        "Pass": password,
+        "Pass": encrypted_password,
+        "PassEncrypted": pass_encrypted,
         "EncryptType": encrypt_type,
         "EncryptKey": encrypt_key
     }
 
     if ds_merchant_order:
         entity["Ds_Merchant_Order"] = ds_merchant_order
-    
-    if bc_method:
-        entity["BCMethod"] = bc_method
-    
-    if bc_path:
-        entity["BCPath"] = bc_path
     
     # Agregar error si existe
     if error:

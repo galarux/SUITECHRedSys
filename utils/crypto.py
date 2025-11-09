@@ -4,7 +4,8 @@ import hmac
 import json
 from typing import Any, Dict
 
-from Crypto.Cipher import DES3
+from Crypto.Cipher import DES3, AES
+from Crypto.Random import get_random_bytes
 
 
 def encrypt(data: str, key: str, encrypt_type: str) -> str:
@@ -12,6 +13,42 @@ def encrypt(data: str, key: str, encrypt_type: str) -> str:
     if encrypt_type.upper() == "SHA-512":
         return hashlib.sha512(message).hexdigest()
     return hashlib.sha256(message).hexdigest()
+
+
+def _derive_aes_key(encrypt_key: str) -> bytes:
+    if not encrypt_key:
+        raise ValueError("Clave de cifrado vacía.")
+    try:
+        material = base64.b64decode(encrypt_key)
+    except Exception:
+        material = encrypt_key.encode("utf-8")
+    return hashlib.sha256(material).digest()
+
+
+def encrypt_secret(secret: str, encrypt_key: str) -> str:
+    if secret is None:
+        raise ValueError("No se puede cifrar un valor nulo.")
+    key = _derive_aes_key(encrypt_key)
+    nonce = get_random_bytes(12)
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    ciphertext, tag = cipher.encrypt_and_digest(secret.encode("utf-8"))
+    payload = nonce + tag + ciphertext
+    return base64.b64encode(payload).decode("utf-8")
+
+
+def decrypt_secret(token: str, encrypt_key: str) -> str:
+    if token is None:
+        raise ValueError("Token vacío.")
+    raw = base64.b64decode(token)
+    if len(raw) < 28:
+        raise ValueError("Token de cifrado inválido.")
+    nonce = raw[:12]
+    tag = raw[12:28]
+    ciphertext = raw[28:]
+    key = _derive_aes_key(encrypt_key)
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+    return plaintext.decode("utf-8")
 
 
 def _prepare_3des_key(raw_key: bytes) -> bytes:

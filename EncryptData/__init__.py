@@ -32,8 +32,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         encrypt_type = body.get("encryptType", "SHA-256")
         encrypt_key = body.get("encryptKey", "")
         encrypt_data = body.get("encryptData")
-        bc_method = body.get("bcMethod")
-        bc_path = body.get("bcPath")
         ds_merchant_order = body.get("Ds_Merchant_Order") or body.get("dsMerchantOrder")
 
         # Validar campos requeridos
@@ -93,6 +91,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=400
             )
 
+        if not encrypt_key:
+            error_msg = "Missing field 'encryptKey'"
+            return func.HttpResponse(
+                json.dumps({"error": error_msg}),
+                mimetype="application/json",
+                status_code=400
+            )
+
         # Encriptar los datos
         result = encrypt(encrypt_data, encrypt_key, encrypt_type)
         
@@ -107,12 +113,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     password=password,
                     encrypt_type=encrypt_type,
                     encrypt_key=encrypt_key,
-                    ds_merchant_order=ds_merchant_order,
-                    bc_method=bc_method,
-                    bc_path=bc_path
+                    ds_merchant_order=ds_merchant_order
                 )
             except Exception as table_error:
-                logging.warning(f"Error al guardar en tabla: {str(table_error)}")
+                logging.error("Error al guardar en tabla: %s", table_error)
+                return func.HttpResponse(
+                    json.dumps({"error": "No se pudo persistir la configuración en Table Storage"}),
+                    mimetype="application/json",
+                    status_code=500
+                )
         
         return func.HttpResponse(
             json.dumps({
@@ -138,8 +147,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     encrypt_type=body.get("encryptType", "SHA-256"),
                     encrypt_key=body.get("encryptKey", ""),
                     ds_merchant_order=body.get("Ds_Merchant_Order") or body.get("dsMerchantOrder"),
-                    bc_method=body.get("bcMethod"),
-                    bc_path=body.get("bcPath"),
                     error=error_msg
                 )
         except Exception as log_error:

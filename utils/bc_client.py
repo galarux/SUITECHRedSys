@@ -27,6 +27,32 @@ def parse_bc_url(url_bc: str) -> Tuple[str, str, str]:
     return tenant, environment, base
 
 
+def split_bc_url(url_bc: str) -> Tuple[str, Optional[str]]:
+    """Divide una URL completa de BC en base y ruta relativa."""
+    if not url_bc:
+        return "", None
+
+    parsed = urlparse(url_bc)
+    segments = [segment for segment in parsed.path.split("/") if segment]
+    if not segments:
+        return url_bc, None
+
+    base_segment_count = 0
+    if segments[0].lower() == "v2.0" and len(segments) >= 3:
+        base_segment_count = 3
+    elif segments[0].lower().startswith("bc"):
+        base_segment_count = 1
+
+    if base_segment_count:
+        base_path = "/" + "/".join(segments[:base_segment_count])
+        relative_segments = segments[base_segment_count:]
+        relative_path = "/".join(relative_segments) if relative_segments else None
+        base_url = f"{parsed.scheme}://{parsed.netloc}{base_path}"
+        return base_url, relative_path
+
+    return url_bc, None
+
+
 PayloadType = Optional[Union[Dict[str, Any], list, str, bytes]]
 
 
