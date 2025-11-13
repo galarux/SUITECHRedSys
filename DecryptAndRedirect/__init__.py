@@ -248,6 +248,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         legacy_path = entity.get("BCPath")
         if not relative_path and legacy_path:
             relative_path = legacy_path
+        bc_path = relative_path or legacy_path or ""
         call_entity = dict(entity)
         call_entity["URLBC"] = base_url or endpoint_url
         bc_method = (entity.get("BCMethod") or "POST").upper()
