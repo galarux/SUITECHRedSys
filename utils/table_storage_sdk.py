@@ -63,6 +63,7 @@ def save_to_table(
     encrypt_type: str,
     encrypt_key: str,
     ds_merchant_order: str | None = None,
+    redirect_url: str | None = None,
     error: str | None = None,
 ) -> str:
     """
@@ -114,6 +115,9 @@ def save_to_table(
 
     if ds_merchant_order:
         entity["Ds_Merchant_Order"] = ds_merchant_order
+
+    if redirect_url:
+        entity["RedirectURL"] = redirect_url
     
     # Agregar error si existe
     if error:

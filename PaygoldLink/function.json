@@ -2,15 +2,12 @@
   "scriptFile": "__init__.py",
   "bindings": [
     {
-      "authLevel": "anonymous",
+      "authLevel": "function",
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route": "DecryptAndRedirect",
-      "methods": [
-        "get",
-        "post"
-      ]
+      "methods": ["post"],
+      "route": "PaygoldLink"
     },
     {
       "type": "http",
@@ -19,3 +16,4 @@
     }
   ]
 }
+
