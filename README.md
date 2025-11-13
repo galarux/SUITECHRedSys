@@ -4,22 +4,6 @@ Azure Functions en Python que conectan Business Central con RedSys.
 
 ## Endpoints
 
-### EncryptData
-- `POST /api/EncryptData`
-- Body mínimo:
-  ```json
-  {
-    "urlBC": "https://.../api/.../notifications",
-    "authType": "Basic" | "oAuth",
-    "user": "...",
-    "pass": "...",
-    "encryptData": "...",
-    "encryptKey": "<REDSYS_SHA256_KEY>",
-    "Ds_Merchant_Order": "ORDER001"
-  }
-  ```
-- Devuelve `encryptedData` y guarda la configuración en `EncryptDataLogs` (contraseña cifrada con la clave RedSys).
-
 ### DecryptAndRedirect
 - `POST /api/DecryptAndRedirect`
 - Recibe `Ds_SignatureVersion`, `Ds_MerchantParameters`, `Ds_Signature`.
@@ -58,7 +42,7 @@ Azure Functions en Python que conectan Business Central con RedSys.
 1. Configura `local.settings.json` con `AzureWebJobsStorage` y `REDSYS_SHA256_KEY`.
 2. Instala dependencias: `pip install -r requirements.txt`.
 3. Arranca: `func start`.
-4. Endpoints locales: `http://localhost:7071/api/EncryptData`, `http://localhost:7071/api/DecryptAndRedirect` y `http://localhost:7071/api/PaygoldLink`.
+4. Endpoints locales: `http://localhost:7071/api/DecryptAndRedirect` y `http://localhost:7071/api/PaygoldLink`.
 
 ## Despliegue rápido
 ```bash
