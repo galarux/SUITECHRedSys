@@ -61,6 +61,8 @@ def _prepare_3des_key(raw_key: bytes) -> bytes:
 
     if len(raw_key) < 24:
         raw_key = (raw_key * (24 // len(raw_key) + 1))[:24]
+    elif len(raw_key) > 24:
+        raw_key = raw_key[:24]
     return raw_key
 
 
@@ -115,3 +117,33 @@ def decode_redsys_parameters(merchant_parameters_b64: str) -> Dict[str, Any]:
 
     decoded = base64.b64decode(merchant_parameters_b64)
     return json.loads(decoded.decode("utf-8"))
+
+
+def _derive_paygold_key(order: str, secret_key_b64: str) -> bytes:
+    """Deriva la clave por operación usando 3DES-CBC como en HMAC_SHA256_V1."""
+
+    base_key = base64.b64decode(secret_key_b64)
+    key_bytes = _prepare_3des_key(base_key)
+
+    data = order.encode("utf-8")
+    if len(data) % 8:
+        data += b"\x00" * (8 - (len(data) % 8))
+
+    cipher = DES3.new(key_bytes, DES3.MODE_CBC, iv=b"\x00" * 8)
+    return cipher.encrypt(data)
+
+
+def compute_paygold_signature(
+    merchant_parameters_b64: str,
+    order: str,
+    secret_key_b64: str,
+) -> str:
+    """Calcula la firma HMAC-SHA256 usada por Paygold REST (HMAC_SHA256_V1)."""
+
+    derived_key = _derive_paygold_key(order, secret_key_b64)
+    digest = hmac.new(
+        derived_key,
+        merchant_parameters_b64.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    return base64.b64encode(digest).decode("utf-8")

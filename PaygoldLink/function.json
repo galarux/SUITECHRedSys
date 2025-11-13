@@ -7,7 +7,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["post"],
-      "route": "EncryptData"
+      "route": "PaygoldLink"
     },
     {
       "type": "http",
@@ -16,3 +16,4 @@
     }
   ]
 }
+
