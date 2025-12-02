@@ -83,16 +83,16 @@ def parse_datetime(date_value: str | None, hour_value: str | None) -> str | None
 
 
 def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str) -> Dict[str, Any]:
-    payload: Dict[str, Any] = {
+    payment_info: Dict[str, Any] = {
         "order": order,
         "merchantCode": decoded_params.get("Ds_MerchantCode"),
         "terminal": decoded_params.get("Ds_Terminal"),
-        "amount": parse_amount(decoded_params.get("Ds_Amount")),
+        "amount": decoded_params.get("Ds_Amount"),
         "currency": decoded_params.get("Ds_Currency"),
         "transactionType": decoded_params.get("Ds_TransactionType"),
         "responseCode": decoded_params.get("Ds_Response"),
         "authorizationCode": decoded_params.get("Ds_AuthorisationCode"),
-        "securePayment": decoded_params.get("Ds_SecurePayment") == "1",
+        "securePayment": decoded_params.get("Ds_SecurePayment"),
         "cardNumber": decoded_params.get("Ds_Card_Number"),
         "cardCountry": decoded_params.get("Ds_Card_Country"),
         "cardBrand": decoded_params.get("Ds_Card_Brand"),
@@ -100,13 +100,18 @@ def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str)
         "processedPayMethod": decoded_params.get("Ds_ProcessedPayMethod"),
         "consumerLanguage": decoded_params.get("Ds_ConsumerLanguage"),
         "merchantData": decoded_params.get("Ds_MerchantData"),
-        "notificationDateTime": parse_datetime(decoded_params.get("Ds_Date"), decoded_params.get("Ds_Hour")),
+        "notificationDateTime": f"{decoded_params.get('Ds_Date', '')} {decoded_params.get('Ds_Hour', '')}".strip() if decoded_params.get("Ds_Date") and decoded_params.get("Ds_Hour") else None,
         "titular": decoded_params.get("Ds_Titular"),
         "signature": signature,
     }
 
     # Filtrar None para no enviar campos vacíos innecesarios
-    return {key: value for key, value in payload.items() if value is not None}
+    filtered_payment_info = {key: value for key, value in payment_info.items() if value is not None}
+    
+    # Convertir el objeto a JSON string y devolverlo dentro de paymentInfo
+    return {
+        "paymentInfo": json.dumps(filtered_payment_info, ensure_ascii=False)
+    }
 
 
 def escape_odata_key(value: str) -> str:
