@@ -1,0 +1,325 @@
+{
+	"info": {
+		"_postman_id": "8440d330-b94a-4033-ba6f-20f9c3cfe265",
+		"name": "Suitech RedSys",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44960971",
+		"_collection_link": "https://daniel-1950230.postman.co/workspace/SUITECH-RedSys~fbc85aa8-a98d-449e-a7e7-4dd3a61de52b/collection/44960971-8440d330-b94a-4033-ba6f-20f9c3cfe265?action=share&source=collection_link&creator=44960971"
+	},
+	"item": [
+		{
+			"name": "AZURE PAYGOLD",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"urlBC\": \"https://api.businesscentral.dynamics.com/v2.0/{{tenant_id}}/{{enviroment_name}}/api/galarux/redsys/v1.0/companies({{company_id_oauth}})/notifications\",\r\n\t\"authType\": \"oAuth\",\r\n\t\"user\": \"{{client_id_oauth}}\",\r\n\t\"pass\": \"{{client_secret_oauth}}\",\r\n\t\"encryptData\": {\r\n        \"DS_MERCHANT_AMOUNT\": \"145\",\r\n        \"DS_MERCHANT_CURRENCY\": \"978\",\r\n        \"DS_MERCHANT_CUSTOMER_MAIL\": \"daniel.oton@gmail.com\",\r\n        \"DS_MERCHANT_CUSTOMER_MOBILE\": \"669267159\",\r\n        \"DS_MERCHANT_MERCHANTCODE\": \"999008881\",\r\n        \"DS_MERCHANT_MERCHANTURL\": \"https://suitechredsys.azurewebsites.net/api/DecryptAndRedirect\",\r\n        \"DS_MERCHANT_ORDER\": \"DOR005\",\r\n        \"DS_MERCHANT_P2F_XMLDATA\": \"<nombreComprador>NOMBRE DEL COMPRADOR</nombreComprador><direccionComprador>DIRECCION DEL COMPRADOR</direccionComprador><textoLibre1>TEXTO LIBRE</textoLibre1><subjectMailCliente>PAGAR PEDIDO</subjectMailCliente>\",\r\n        \"DS_MERCHANT_TERMINAL\": \"1\",\r\n        \"DS_MERCHANT_TRANSACTIONTYPE\": \"F\"\r\n    },\r\n\t\"redirectURL\": \"https://sis-t.redsys.es:25443/sis/rest/trataPeticionREST\",\r\n\t\"encryptKey\": \"sq7HjrUOBfKmC576ILgskD5srU870gJ7\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://suitechredsys.azurewebsites.net/api/PaygoldLink?code={{paygold_funcKey}}",
+					"protocol": "https",
+					"host": [
+						"suitechredsys",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"api",
+						"PaygoldLink"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{paygold_funcKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SUITECH PAYGOLD BASIC",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"urlBC\": \"http://test.suitech.es:9248/Test_SNO/api/suitech/apiPMSCC/v1.0/companies(980e7be2-6130-4533-a9be-d3e93525ff77)/creditCards\",\r\n\t\"authType\": \"Basic\",\r\n\t\"user\": \"{{ws_user_suitech}}\",\r\n\t\"pass\": \"{{ws_key_Suitech}}\",\r\n\t\"encryptData\": {\r\n        \"DS_MERCHANT_AMOUNT\": \"145\",\r\n        \"DS_MERCHANT_CURRENCY\": \"978\",\r\n        \"DS_MERCHANT_CUSTOMER_MAIL\": \"daniel.oton@gmail.com\",\r\n        \"DS_MERCHANT_CUSTOMER_MOBILE\": \"669267159\",\r\n        \"DS_MERCHANT_MERCHANTCODE\": \"999008881\",\r\n        \"DS_MERCHANT_MERCHANTURL\": \"https://suitechredsys.azurewebsites.net/api/DecryptAndRedirect\",\r\n        \"DS_MERCHANT_ORDER\": \"PRUEBADANIEL2\",\r\n        \"DS_MERCHANT_P2F_XMLDATA\": \"<nombreComprador>NOMBRE DEL COMPRADOR</nombreComprador><direccionComprador>DIRECCION DEL COMPRADOR</direccionComprador><textoLibre1>TEXTO LIBRE</textoLibre1><subjectMailCliente>PAGAR PEDIDO</subjectMailCliente>\",\r\n        \"DS_MERCHANT_TERMINAL\": \"1\",\r\n        \"DS_MERCHANT_TRANSACTIONTYPE\": \"F\"\r\n    },\r\n\t\"redirectURL\": \"https://sis-t.redsys.es:25443/sis/rest/trataPeticionREST\",\r\n\t\"encryptKey\": \"sq7HjrUOBfKmC576ILgskD5srU870gJ7\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://suitechredsys.azurewebsites.net/api/PaygoldLink?code={{paygold_funcKey}}",
+					"protocol": "https",
+					"host": [
+						"suitechredsys",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"api",
+						"PaygoldLink"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{paygold_funcKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AZURE EncryptData - OAuth",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"urlBC\": \"https://api.businesscentral.dynamics.com/v2.0/{{tenant_id}}/{{enviroment_name}}/api/galarux/redsys/v1.0/companies({{company_id_oauth}})/notifications\",\r\n  \"authType\": \"oAuth\",\r\n  \"user\": \"{{client_id_oauth}}\",\r\n  \"pass\": \"{{client_secret_oauth}}\",\r\n  \"encryptData\": \"texto a cifrar\",\r\n\"redsysdata\": [\r\n        {\"DS_MERCHANT_AMOUNT\": \"000\",\"DS_MERCHANT_CURRENCY\": \"978\",\"DS_MERCHANT_CUSTOMER_MAIL\": \"hgracia@suitech.es\",\"DS_MERCHANT_CUSTOMER_MOBILE\": \"666067462\",\"DS_MERCHANT_MERCHANTCODE\": \"999008881\",\"DS_MERCHANT_MERCHANTURL\": \"http://www.suitech.es\",\"DS_MERCHANT_ORDER\": \"suihgr001\",\"DS_MERCHANT_P2F_XMLDATA\": {\"<nombreComprador>Héctor Gracia Rub</nombreComprador><direccionComprador>hgracia@suitech.es</direccionComprador><textoLibre1>TEXTO LIBRE</textoLibre1><subjectMailCliente>Prueba RedSys</subjectMailCliente>\"},\"DS_MERCHANT_TERMINAL\": \"999\",\"DS_MERCHANT_TRANSACTIONTYPE\": \"F\"}\r\n]\r\n  \"encryptType\": \"SHA-256\",\r\n  \"encryptKey\": \"clave123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://suitechredsys.azurewebsites.net/api/EncryptData?code={{encrypt_funcKey}}",
+					"protocol": "https",
+					"host": [
+						"suitechredsys",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"api",
+						"EncryptData"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{encrypt_funcKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AZURE EncryptData - Basic",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"urlBC\": \"http://localhost:7048/BC190/api/galarux/redsys/v1.0/companies({{company_id_basic}})/notifications\",\r\n  \"authType\": \"Basic\",\r\n  \"user\": \"{{user_basic}}\",\r\n  \"pass\": \"{{wskey_basic}}\",\r\n  \"encryptData\": \"texto a cifrar\",\r\n  \"Ds_Merchant_Order\": \"ORDER333\",\r\n  \"encryptType\": \"SHA-256\",\r\n  \"encryptKey\": \"clave123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://suitechredsys.azurewebsites.net/api/EncryptData?code={{encrypt_funcKey}}",
+					"protocol": "https",
+					"host": [
+						"suitechredsys",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"api",
+						"EncryptData"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{encrypt_funcKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SUITECH - EncryptData",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"urlBC\": \"http://test.suitech.es:9248/Test_SNO/api/suitech/apiPMSCC/v1.0/companies(980e7be2-6130-4533-a9be-d3e93525ff77)/creditCards\",\r\n  \"authType\": \"Basic\",\r\n  \"user\": \"{{ws_user_suitech\",\r\n  \"pass\": \"{{ws_key_Suitech}}\",\r\n  \"encryptData\": \"texto a cifrar\",\r\n  \"Ds_Merchant_Order\": \"ORDER333\",\r\n  \"encryptType\": \"SHA-256\",\r\n  \"encryptKey\": \"clave123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://suitechredsys.azurewebsites.net/api/EncryptData?code={{encrypt_funcKey}}",
+					"protocol": "https",
+					"host": [
+						"suitechredsys",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"api",
+						"EncryptData"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{encrypt_funcKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "BC Obtener token OAuth",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret_oauth}}",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id_oauth}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "{{scope}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "REDSYS Simular en local",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Ds_SignatureVersion\": \"HMAC_SHA256_V1\",\r\n  \"Ds_MerchantParameters\": \"eyJEc19EYXRlIjogIjA5LzExLzIwMjUiLCAiRHNfSG91ciI6ICIyMTozMCIsICJEc19TZWN1cmVQYXltZW50IjogIjEiLCAiRHNfQ2FyZF9Db3VudHJ5IjogIjcyNCIsICJEc19BbW91bnQiOiAiOTAwIiwgIkRzX0N1cnJlbmN5IjogIjk3OCIsICJEc19PcmRlciI6ICJPUkRFUjMzMyIsICJEc19NZXJjaGFudENvZGUiOiAiMjYzMTAwMDAwIiwgIkRzX1Rlcm1pbmFsIjogIjA0OSIsICJEc19SZXNwb25zZSI6ICIwMDAwIiwgIkRzX01lcmNoYW50RGF0YSI6ICIiLCAiRHNfVHJhbnNhY3Rpb25UeXBlIjogIjM4IiwgIkRzX0NvbnN1bWVyTGFuZ3VhZ2UiOiAiMSIsICJEc19BdXRob3Jpc2F0aW9uQ29kZSI6ICIzMzM5ODIiLCAiRHNfQ2FyZF9CcmFuZCI6ICIxIiwgIkRzX0NhcmRfVHlwb2xvZ3kiOiAiQ09OU1VNTyIsICJEc19Qcm9jZXNzZWRQYXlNZXRob2QiOiAiNzgiLCAiRHNfVGl0dWxhciI6ICJEYW5pZWwiLCAiRHNfQ29udHJvbF8xNzYyNzIwMTE5OTg1IjogIjE3NjI3MjAxMTk5ODUifQ==\",\r\n  \"Ds_Signature\": \"5X0mHxQOhWcfgKGJ8goSLdiAIzn9IKnu+6feEbtEjf0=\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:7071/api/DecryptAndRedirect",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7071",
+					"path": [
+						"api",
+						"DecryptAndRedirect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SUITECH - Verificar BC",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{ws_user_suitech}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{ws_key_Suitech}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Ds_SignatureVersion\": \"HMAC_SHA256_V1\",\r\n  \"Ds_MerchantParameters\": \"eyJEc19EYXRlIjogIjA5LzExLzIwMjUiLCAiRHNfSG91ciI6ICIyMTozMCIsICJEc19TZWN1cmVQYXltZW50IjogIjEiLCAiRHNfQ2FyZF9Db3VudHJ5IjogIjcyNCIsICJEc19BbW91bnQiOiAiOTAwIiwgIkRzX0N1cnJlbmN5IjogIjk3OCIsICJEc19PcmRlciI6ICJPUkRFUjMzMyIsICJEc19NZXJjaGFudENvZGUiOiAiMjYzMTAwMDAwIiwgIkRzX1Rlcm1pbmFsIjogIjA0OSIsICJEc19SZXNwb25zZSI6ICIwMDAwIiwgIkRzX01lcmNoYW50RGF0YSI6ICIiLCAiRHNfVHJhbnNhY3Rpb25UeXBlIjogIjM4IiwgIkRzX0NvbnN1bWVyTGFuZ3VhZ2UiOiAiMSIsICJEc19BdXRob3Jpc2F0aW9uQ29kZSI6ICIzMzM5ODIiLCAiRHNfQ2FyZF9CcmFuZCI6ICIxIiwgIkRzX0NhcmRfVHlwb2xvZ3kiOiAiQ09OU1VNTyIsICJEc19Qcm9jZXNzZWRQYXlNZXRob2QiOiAiNzgiLCAiRHNfVGl0dWxhciI6ICJEYW5pZWwiLCAiRHNfQ29udHJvbF8xNzYyNzIwMTE5OTg1IjogIjE3NjI3MjAxMTk5ODUifQ==\",\r\n  \"Ds_Signature\": \"5X0mHxQOhWcfgKGJ8goSLdiAIzn9IKnu+6feEbtEjf0=\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://test.suitech.es:9248/Test_SNO/api/suitech/apiPMSCC/v1.0/companies(980e7be2-6130-4533-a9be-d3e93525ff77)/creditCards",
+					"protocol": "http",
+					"host": [
+						"test",
+						"suitech",
+						"es"
+					],
+					"port": "9248",
+					"path": [
+						"Test_SNO",
+						"api",
+						"suitech",
+						"apiPMSCC",
+						"v1.0",
+						"companies(980e7be2-6130-4533-a9be-d3e93525ff77)",
+						"creditCards"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

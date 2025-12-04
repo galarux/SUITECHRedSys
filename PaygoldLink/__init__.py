@@ -192,7 +192,9 @@ def _build_merchant_parameters(
 
 
 def _encode_parameters(merchant_parameters: Dict[str, str]) -> str:
-    serialized = json.dumps(merchant_parameters, separators=(",", ":"), ensure_ascii=False)
+    # Ordenar las claves para garantizar consistencia (RedSys puede ser estricto con el formato)
+    sorted_params = dict(sorted(merchant_parameters.items()))
+    serialized = json.dumps(sorted_params, separators=(",", ":"), ensure_ascii=False)
     return base64.b64encode(serialized.encode("utf-8")).decode("utf-8")
 
 

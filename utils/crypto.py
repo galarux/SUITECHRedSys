@@ -122,7 +122,14 @@ def decode_redsys_parameters(merchant_parameters_b64: str) -> Dict[str, Any]:
 def _derive_paygold_key(order: str, secret_key_b64: str) -> bytes:
     """Deriva la clave por operación usando 3DES-CBC como en HMAC_SHA256_V1."""
 
-    base_key = base64.b64decode(secret_key_b64)
+    # Intenta decodificar como Base64, si falla trata la clave como texto plano
+    try:
+        base_key = base64.b64decode(secret_key_b64, validate=True)
+    except Exception:
+        # Si no es Base64 válido, codifica el texto plano a Base64 primero
+        secret_key_b64 = base64.b64encode(secret_key_b64.encode("utf-8")).decode("utf-8")
+        base_key = base64.b64decode(secret_key_b64)
+    
     key_bytes = _prepare_3des_key(base_key)
 
     data = order.encode("utf-8")

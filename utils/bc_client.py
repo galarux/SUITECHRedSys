@@ -110,6 +110,17 @@ def _request_oauth(
         raise BusinessCentralError("Respuesta de token inválida (sin access_token).")
 
     auth_headers = {"Authorization": f"Bearer {access_token}"}
+    
+    # Si el payload es un dict/list, usar json= para enviarlo correctamente como JSON
+    if isinstance(payload, (dict, list)):
+        request_headers = {"Accept": "application/json"}
+        if headers:
+            request_headers.update(headers)
+        if request_headers:
+            auth_headers.update(request_headers)
+        return requests.request(method, url, headers=auth_headers, json=payload, timeout=30)
+    
+    # Para strings/bytes, usar _prepare_request_components
     request_headers, data = _prepare_request_components(payload, headers)
     if request_headers:
         auth_headers.update(request_headers)
@@ -129,6 +140,21 @@ def _request_basic(
     if not user or not password:
         raise BusinessCentralError("Entidad BC incompleta para Basic Auth (User/Pass requeridos).")
 
+    # Si el payload es un dict/list, usar json= para enviarlo correctamente como JSON
+    if isinstance(payload, (dict, list)):
+        request_headers = {"Accept": "application/json"}
+        if headers:
+            request_headers.update(headers)
+        return requests.request(
+            method,
+            url,
+            headers=request_headers,
+            json=payload,
+            auth=(user, password),
+            timeout=30,
+        )
+    
+    # Para strings/bytes, usar _prepare_request_components
     request_headers, data = _prepare_request_components(payload, headers)
     return requests.request(
         method,
