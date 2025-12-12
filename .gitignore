@@ -6,6 +6,16 @@ ENV/
 
 # Configuraciones locales sensibles
 local.settings.json
+*.secrets.json
+.env
+.env.local
+
+# Claves y secretos (NUNCA subir)
+**/secrets/
+**/keys/
+*.key
+*.pem
+*.pfx
 
 # Python
 __pycache__/
@@ -27,11 +37,12 @@ obj/
 *.cache
 
 # IDEs
-
+.vscode/
 .idea/
 *.swp
 *.swo
 *~
+.vs/
 
 # OS
 .DS_Store
@@ -39,3 +50,11 @@ Thumbs.db
 
 # Logs
 *.log
+func_local.log
+
+# Archivos temporales de Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# Archivos de workspace
+*.code-workspace

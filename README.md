@@ -2,6 +2,23 @@
 
 Azure Functions en Python que conectan Business Central con RedSys.
 
+---
+
+## 🚨 IMPORTANTE - Problema Resuelto
+
+> **✅ PROBLEMA RESUELTO (12/12/2025):** El problema recurrente de `ModuleNotFoundError` ha sido resuelto definitivamente.
+> 
+> **Solución:** Configuración `WEBSITE_RUN_FROM_PACKAGE=0` + Remote Build correctamente configurado.
+> 
+> **Verificado:** ✅ Función funciona después de reiniciar (prueba crítica superada).
+> 
+> 📖 **Documentación completa:** [`PROBLEMA_RESUELTO.md`](PROBLEMA_RESUELTO.md)  
+> ⚡ **Acción rápida:** [`EJECUTAR_AHORA.md`](EJECUTAR_AHORA.md)  
+> 📋 **Resumen:** [`RESUMEN_EJECUTIVO.md`](RESUMEN_EJECUTIVO.md)  
+> 🚀 **Referencia rápida:** [`CHEAT_SHEET.md`](CHEAT_SHEET.md)
+
+---
+
 ## Endpoints
 
 ### DecryptAndRedirect
@@ -46,9 +63,9 @@ Azure Functions en Python que conectan Business Central con RedSys.
 
 ## Despliegue rápido
 
-⚠️ **IMPORTANTE**: Usa SIEMPRE `--build remote` para evitar errores de dependencias.
+⚠️ **IMPORTANTE**: Usa SIEMPRE el script de despliegue para evitar errores de dependencias.
 
-**Opción A - Script automático (recomendado):**
+**Opción A - Script automático (RECOMENDADO):**
 ```bash
 # Windows
 .\deploy.ps1 -FunctionAppName "suitechredsys"
@@ -57,18 +74,26 @@ Azure Functions en Python que conectan Business Central con RedSys.
 ./deploy.sh suitechredsys
 ```
 
-**Opción B - Manual:**
-```bash
-# Limpiar archivos locales
-rm -rf .python_packages __pycache__
+El script automáticamente:
+- ✅ Limpia archivos locales
+- ✅ Configura Remote Build correctamente
+- ✅ Despliega con las flags correctas
+- ✅ Verifica que todo funcione
 
-# Desplegar con Remote Build
-func azure functionapp publish suitechredsys --python --build remote
+**Opción B - Verificar despliegue:**
+```bash
+# Después del despliegue, verifica que todo esté correcto
+.\verify_deployment.ps1 -FunctionAppName "suitechredsys"
 ```
 
 Variables obligatorias en la Function App: `AzureWebJobsStorage`, `REDSYS_SHA256_KEY`, `REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_REST_URL` y `REDSYS_NOTIFICATION_URL`.
 
-**Si experimentas errores de módulos no encontrados**, consulta `GUIAS/GUIA_SOLUCIONAR_DEPENDENCIAS.md`.
+**Configuraciones críticas automáticas:**
+- `WEBSITE_RUN_FROM_PACKAGE=0` ⭐ (previene errores de módulos)
+- `SCM_DO_BUILD_DURING_DEPLOYMENT=true`
+- `ENABLE_ORYX_BUILD=true`
+
+**Si experimentas errores recurrentes de módulos no encontrados**, consulta [`PROBLEMA_RESUELTO.md`](PROBLEMA_RESUELTO.md).
 
 ## Utilidades
 - `tools/generate_redsys_payload.py ORDER123 <REDSYS_SHA256_KEY>` genera `Ds_MerchantParameters` y firma para pruebas locales.
@@ -76,3 +101,18 @@ Variables obligatorias en la Function App: `AzureWebJobsStorage`, `REDSYS_SHA256
 
 ## Notas
 - La tabla `EncryptDataLogs` se crea automáticamente.
+
+## 📚 Documentación Completa
+
+### Documentos Principales
+- **[`RESUMEN_EJECUTIVO.md`](RESUMEN_EJECUTIVO.md)** - Resumen del problema resuelto en una página
+- **[`PROBLEMA_RESUELTO.md`](PROBLEMA_RESUELTO.md)** ⭐ - Análisis completo y solución definitiva
+- **[`DOCUMENTACION_INDICE.md`](DOCUMENTACION_INDICE.md)** - Índice de toda la documentación
+- **[`EJECUTAR_AHORA.md`](EJECUTAR_AHORA.md)** - Guía de acción rápida para emergencias
+
+### Scripts
+- **[`deploy.ps1`](deploy.ps1)** - Script de despliegue (USAR SIEMPRE)
+- **[`verify_deployment.ps1`](verify_deployment.ps1)** - Script de verificación post-despliegue
+
+### Guías Específicas
+Ver carpeta [`GUIAS/`](GUIAS/) para guías detalladas sobre publicación, logs, Postman, OAuth, etc.

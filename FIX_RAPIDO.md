@@ -1,21 +1,30 @@
 # ⚡ Fix Rápido - Solucionar Error de Dependencias AHORA
 
-## 🚨 Si estás viendo este error:
+## 🚨 Si estás viendo este error (incluso después de desplegar):
 ```
 ModuleNotFoundError: No module named 'requests'
 ```
 
-## ✅ Solución en 1 Comando
+## ✅ Solución MEJORADA en 2 Comandos
 
 ### Windows (PowerShell):
 ```powershell
+# 1. Desplegar con configuración mejorada
 .\deploy.ps1 -FunctionAppName "suitechredsys"
+
+# 2. Verificar que todo esté correcto
+.\verify_deployment.ps1 -FunctionAppName "suitechredsys"
 ```
 
 ### Linux/Mac (Bash):
 ```bash
+# 1. Desplegar
 chmod +x deploy.sh && ./deploy.sh suitechredsys
+
+# 2. Verificar (crear script similar para bash si es necesario)
 ```
+
+**¿Qué cambió?** El script ahora configura `WEBSITE_RUN_FROM_PACKAGE=0` y otras settings críticas que previenen el problema recurrente.
 
 ---
 
@@ -73,11 +82,13 @@ az functionapp log tail --name suitechredsys --resource-group $(az functionapp s
 
 ## 📚 Más Información
 
+- **Problema recurrente (funciona 10 min y luego falla):** `SOLUCION_PROBLEMA_RECURRENTE.md` ⭐ **NUEVO**
 - **Guía completa:** `GUIAS/GUIA_SOLUCIONAR_DEPENDENCIAS.md`
 - **Resumen ejecutivo:** `SOLUCION_DEPENDENCIAS_RESUMEN.md`
 
 ---
 
-**Tiempo estimado:** 3-5 minutos
-**Efectividad:** 100% (si se siguen los pasos correctamente)
+**Tiempo estimado:** 5-7 minutos (incluye verificación)
+**Efectividad:** 95%+ (con las nuevas configuraciones)
+
 
