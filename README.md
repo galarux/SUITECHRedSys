@@ -45,10 +45,30 @@ Azure Functions en Python que conectan Business Central con RedSys.
 4. Endpoints locales: `http://localhost:7071/api/DecryptAndRedirect` y `http://localhost:7071/api/PaygoldLink`.
 
 ## Despliegue rápido
+
+⚠️ **IMPORTANTE**: Usa SIEMPRE `--build remote` para evitar errores de dependencias.
+
+**Opción A - Script automático (recomendado):**
 ```bash
-func azure functionapp publish suitechredsys --python
+# Windows
+.\deploy.ps1 -FunctionAppName "suitechredsys"
+
+# Linux/Mac
+./deploy.sh suitechredsys
 ```
+
+**Opción B - Manual:**
+```bash
+# Limpiar archivos locales
+rm -rf .python_packages __pycache__
+
+# Desplegar con Remote Build
+func azure functionapp publish suitechredsys --python --build remote
+```
+
 Variables obligatorias en la Function App: `AzureWebJobsStorage`, `REDSYS_SHA256_KEY`, `REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_REST_URL` y `REDSYS_NOTIFICATION_URL`.
+
+**Si experimentas errores de módulos no encontrados**, consulta `GUIAS/GUIA_SOLUCIONAR_DEPENDENCIAS.md`.
 
 ## Utilidades
 - `tools/generate_redsys_payload.py ORDER123 <REDSYS_SHA256_KEY>` genera `Ds_MerchantParameters` y firma para pruebas locales.

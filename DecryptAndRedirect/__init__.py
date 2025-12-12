@@ -83,20 +83,6 @@ def parse_datetime(date_value: str | None, hour_value: str | None) -> str | None
 
 
 def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str) -> Dict[str, Any]:
-    """Construye el payload que espera BC: `order` y `paymentInfo` como string JSON.
-
-    El formato esperado:
-    {
-        "order": "...",
-        "paymentInfo": "{\"order\":\"...\",\"merchantCode\":\"...\", ... }"
-    }
-    """
-
-    # Formatear fecha/hora como en el ejemplo: "dd/MM/yyyy HH:mm"
-    notification_dt: str | None = None
-    if decoded_params.get("Ds_Date") and decoded_params.get("Ds_Hour"):
-        notification_dt = f"{decoded_params['Ds_Date']} {decoded_params['Ds_Hour']}"
-
     payment_info: Dict[str, Any] = {
         "order": order,
         "merchantCode": decoded_params.get("Ds_MerchantCode"),
@@ -114,16 +100,16 @@ def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str)
         "processedPayMethod": decoded_params.get("Ds_ProcessedPayMethod"),
         "consumerLanguage": decoded_params.get("Ds_ConsumerLanguage"),
         "merchantData": decoded_params.get("Ds_MerchantData"),
-        "notificationDateTime": notification_dt,
+        "notificationDateTime": f"{decoded_params.get('Ds_Date', '')} {decoded_params.get('Ds_Hour', '')}".strip() if decoded_params.get("Ds_Date") and decoded_params.get("Ds_Hour") else None,
         "titular": decoded_params.get("Ds_Titular"),
-        "signature": signature or "",
+        "signature": signature,
     }
 
-    # Quitar los None para que el JSON sea limpio
-    filtered_payment_info = {k: v for k, v in payment_info.items() if v is not None}
-
+    # Filtrar None para no enviar campos vacíos innecesarios
+    filtered_payment_info = {key: value for key, value in payment_info.items() if value is not None}
+    
+    # Convertir el objeto a JSON string y devolverlo dentro de paymentInfo
     return {
-        "order": order,  # La API de BC espera "order", no "merchantOrder"
         "paymentInfo": json.dumps(filtered_payment_info, ensure_ascii=False)
     }
 
@@ -292,11 +278,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             base_for_summary = base_url or endpoint_url
             final_url = f"{base_for_summary.rstrip('/')}/{relative_path.lstrip('/')}"
 
-        # Log del payload que se va a enviar a BC
-        payload_str = json.dumps(bc_payload, ensure_ascii=False, indent=2)
-        logging.info("ENVIANDO A BC - URL: %s, Método: %s", final_url, bc_method)
-        logging.info("PAYLOAD ENVIADO A BC: %s", payload_str)
-
         try:
             bc_response = call_business_central(
                 call_entity,
@@ -304,7 +285,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 relative_path=relative_path,
                 payload=bc_payload,
             )
-            logging.info("Business Central respondió con status: %s", bc_response.status_code)
             bc_status = bc_response.status_code
             try:
                 bc_content = bc_response.json()
@@ -316,7 +296,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "method": bc_method,
                 "url": final_url,
                 "payload": bc_content,
-                "sentPayload": bc_payload,  # Temporal: para verificar el formato de paymentInfo
             }
             bc_response.raise_for_status()
 
@@ -346,54 +325,28 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         except HTTPError as http_error:
             status_code = http_error.response.status_code if http_error.response else 502
             body = http_error.response.text if http_error.response else str(http_error)
-            
-            # Capturar más detalles del error
-            error_details = {"raw": body}
-            if http_error.response:
-                try:
-                    error_json = http_error.response.json()
-                    error_details = error_json
-                    logging.error("ERROR BC JSON: %s", json.dumps(error_json, ensure_ascii=False, indent=2))
-                except (ValueError, AttributeError):
-                    error_details = {"raw": body, "text": body[:1000]}  # Limitar tamaño
-                    logging.error("ERROR BC TEXT: %s", body[:1000])
-                
-                # Capturar headers relevantes
-                error_details["responseHeaders"] = dict(http_error.response.headers)
-            
-            payload_str = json.dumps(bc_payload, ensure_ascii=False, indent=2)
-            logging.error("ERROR BC - Status: %s, URL: %s", status_code, final_url)
-            logging.error("PAYLOAD QUE SE ENVIÓ: %s", payload_str)
-            logging.error("RESPUESTA COMPLETA BC: %s", json.dumps(error_details, ensure_ascii=False, indent=2))
-            
+            logging.error("Business Central devolvió error %s: %s", status_code, body)
             bc_call_summary = {
                 "status": status_code,
                 "method": bc_method,
-                "url": final_url,
                 "path": bc_path,
-                "error": body[:1000] if len(body) > 1000 else body,  # Limitar tamaño
-                "errorDetails": error_details,
-                "sentPayload": bc_payload,  # Incluir payload enviado para debugging
+                "error": body,
             }
         except BusinessCentralError as bc_error:
             logging.error("Error de configuración para Business Central: %s", bc_error)
             bc_call_summary = {
                 "status": 400,
                 "method": bc_method,
-                "url": final_url,
                 "path": bc_path,
                 "error": str(bc_error),
-                "sentPayload": bc_payload,  # Incluir payload enviado para debugging
             }
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception("Error llamando a Business Central desde DecryptAndRedirect")
             bc_call_summary = {
                 "status": 500,
                 "method": bc_method,
-                "url": final_url,
                 "path": bc_path,
                 "error": str(exc),
-                "sentPayload": bc_payload,  # Incluir payload enviado para debugging
             }
 
     response: Dict[str, Any] = {

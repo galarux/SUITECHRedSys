@@ -1,1 +1,38 @@
+# Python virtual environments
 .venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Python packages (Azure will build remotely)
+.python_packages
+
+# Development files
+.vscode
+.git
+.gitignore
+.funcignore
+
+# Local settings
+local.settings.json
+
+# Build artifacts
+bin
+obj
+*.user
+*.suo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests
+test_*.py
+
+# Documentation (optional, uncomment if you want to exclude)
+# GUIAS
+# README.md

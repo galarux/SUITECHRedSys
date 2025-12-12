@@ -48,15 +48,33 @@ az account set --subscription "<SUBSCRIPTION-ID>"
 
 ### Paso 2: Publicar la Función
 
-**Desde el directorio del proyecto:**
+**⚠️ IMPORTANTE: Usa SIEMPRE Remote Build para evitar problemas de dependencias**
+
+**Opción A - Script Automático (RECOMENDADO):**
 
 ```powershell
-# Reemplaza <nombre-function-app> con el nombre de tu Function App
-func azure functionapp publish <nombre-function-app> --python
+# Windows
+.\deploy.ps1 -FunctionAppName "suitechredsys"
+
+# Linux/Mac
+chmod +x deploy.sh
+./deploy.sh suitechredsys
 ```
 
-**Ejemplo:**
+**Opción B - Manual con Remote Build:**
+
 ```powershell
+# Limpiar archivos locales primero
+Remove-Item -Recurse -Force .python_packages -ErrorAction SilentlyContinue
+Get-ChildItem -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+
+# Publicar con --build remote (OBLIGATORIO)
+func azure functionapp publish suitechredsys --python --build remote
+```
+
+**❌ NO hagas esto:**
+```powershell
+# ❌ SIN --build remote causará errores de dependencias
 func azure functionapp publish suitechredsys --python
 ```
 
