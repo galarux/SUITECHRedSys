@@ -279,6 +279,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             final_url = f"{base_for_summary.rstrip('/')}/{relative_path.lstrip('/')}"
 
         try:
+            # Log para verificar el payload enviado
+            logging.info("Payload enviado a Business Central: %s", json.dumps(bc_payload, ensure_ascii=False))
+            
             bc_response = call_business_central(
                 call_entity,
                 method=bc_method,
