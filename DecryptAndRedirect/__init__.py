@@ -83,34 +83,24 @@ def parse_datetime(date_value: str | None, hour_value: str | None) -> str | None
 
 
 def build_bc_payload(decoded_params: Dict[str, Any], signature: str, order: str) -> Dict[str, Any]:
-    payment_info: Dict[str, Any] = {
-        "order": order,
-        "merchantCode": decoded_params.get("Ds_MerchantCode"),
-        "terminal": decoded_params.get("Ds_Terminal"),
-        "amount": decoded_params.get("Ds_Amount"),
-        "currency": decoded_params.get("Ds_Currency"),
-        "transactionType": decoded_params.get("Ds_TransactionType"),
-        "responseCode": decoded_params.get("Ds_Response"),
-        "authorizationCode": decoded_params.get("Ds_AuthorisationCode"),
-        "securePayment": decoded_params.get("Ds_SecurePayment"),
-        "cardNumber": decoded_params.get("Ds_Card_Number"),
-        "cardCountry": decoded_params.get("Ds_Card_Country"),
-        "cardBrand": decoded_params.get("Ds_Card_Brand"),
-        "cardTypology": decoded_params.get("Ds_Card_Typology"),
-        "processedPayMethod": decoded_params.get("Ds_ProcessedPayMethod"),
-        "consumerLanguage": decoded_params.get("Ds_ConsumerLanguage"),
-        "merchantData": decoded_params.get("Ds_MerchantData"),
-        "notificationDateTime": f"{decoded_params.get('Ds_Date', '')} {decoded_params.get('Ds_Hour', '')}".strip() if decoded_params.get("Ds_Date") and decoded_params.get("Ds_Hour") else None,
-        "titular": decoded_params.get("Ds_Titular"),
-        "signature": signature,
-    }
-
-    # Filtrar None para no enviar campos vacíos innecesarios
-    filtered_payment_info = {key: value for key, value in payment_info.items() if value is not None}
+    """Construye el payload para Business Central.
     
-    # Convertir el objeto a JSON string y devolverlo dentro de paymentInfo
+    Envía exactamente lo que RedSys manda (decoded_params) como un string JSON
+    en el campo 'paymentInfo'. Esto hace la solución transparente a cambios
+    en los campos de RedSys.
+    
+    Args:
+        decoded_params: Parámetros decodificados de RedSys (tal cual los envía)
+        signature: Firma recibida de RedSys
+        order: Número de pedido
+        
+    Returns:
+        Diccionario con un único campo 'paymentInfo' conteniendo el JSON string
+    """
+    # Enviar exactamente lo que RedSys manda, sin transformaciones
+    # Esto hace la AF transparente a cambios en los campos de RedSys
     return {
-        "paymentInfo": json.dumps(filtered_payment_info, ensure_ascii=False)
+        "paymentInfo": json.dumps(decoded_params, ensure_ascii=False)
     }
 
 
@@ -279,9 +269,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             final_url = f"{base_for_summary.rstrip('/')}/{relative_path.lstrip('/')}"
 
         try:
-            # Log para verificar el payload enviado
-            logging.info("Payload enviado a Business Central: %s", json.dumps(bc_payload, ensure_ascii=False))
-            
             bc_response = call_business_central(
                 call_entity,
                 method=bc_method,
