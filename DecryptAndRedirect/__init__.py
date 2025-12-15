@@ -321,6 +321,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "method": bc_method,
                 "path": bc_path,
                 "error": body,
+                "sentPayload": bc_payload,
             }
         except BusinessCentralError as bc_error:
             logging.error("Error de configuración para Business Central: %s", bc_error)
@@ -329,6 +330,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "method": bc_method,
                 "path": bc_path,
                 "error": str(bc_error),
+                "sentPayload": bc_payload,
             }
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception("Error llamando a Business Central desde DecryptAndRedirect")
@@ -337,6 +339,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "method": bc_method,
                 "path": bc_path,
                 "error": str(exc),
+                "sentPayload": bc_payload,
             }
 
     response: Dict[str, Any] = {
