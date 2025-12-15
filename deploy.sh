@@ -40,6 +40,26 @@ if [ $? -eq 0 ]; then
     echo "✅ Despliegue completado exitosamente"
     echo ""
     
+    # Paso 3.5: Reconfigurar settings que se eliminaron durante el despliegue
+    echo "🔧 Reconfigurando settings de persistencia..."
+    STORAGE_ACCOUNT=$(az storage account list --resource-group "$RESOURCE_GROUP" --query "[0].name" -o tsv)
+    if [ -n "$STORAGE_ACCOUNT" ]; then
+        CONN_STR=$(az storage account show-connection-string --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "connectionString" -o tsv)
+        
+        az functionapp config appsettings set \
+            --name "$FUNCTION_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --settings "AzureWebJobsStorage=$CONN_STR" \
+                       "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING=$CONN_STR" \
+                       "WEBSITE_CONTENTSHARE=$FUNCTION_APP_NAME" \
+                       "WEBSITE_RUN_FROM_PACKAGE=1" \
+            --output none
+        echo "   ✅ Settings de persistencia reconfiguradas"
+    else
+        echo "   ⚠️  No se pudo encontrar el storage account"
+    fi
+    echo ""
+    
     # Paso 4: Verificar que la función esté disponible
     echo "🔍 Verificando función..."
     sleep 5

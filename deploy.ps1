@@ -56,6 +56,29 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Despliegue completado exitosamente" -ForegroundColor Green
     Write-Host ""
     
+    # Paso 3.5: Reconfigurar settings que se eliminaron durante el despliegue
+    Write-Host "🔧 Reconfigurando settings de persistencia..." -ForegroundColor Yellow
+    try {
+        # Obtener connection string del storage
+        $storageAccount = az storage account list --resource-group $ResourceGroup --query "[0].name" -o tsv
+        if ($storageAccount) {
+            $connStr = az storage account show-connection-string --name $storageAccount --resource-group $ResourceGroup --query "connectionString" -o tsv
+            
+            az functionapp config appsettings set `
+                --name $FunctionAppName `
+                --resource-group $ResourceGroup `
+                --settings "AzureWebJobsStorage=$connStr" `
+                           "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING=$connStr" `
+                           "WEBSITE_CONTENTSHARE=$FunctionAppName" `
+                           "WEBSITE_RUN_FROM_PACKAGE=1" `
+                --output none
+            Write-Host "   ✅ Settings de persistencia reconfiguradas" -ForegroundColor Green
+        }
+    } catch {
+        Write-Host "   ⚠️  No se pudieron reconfigurar las settings automáticamente" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    
     # Paso 4: Verificar que la función esté disponible
     Write-Host "🔍 Verificando función..." -ForegroundColor Yellow
     Start-Sleep -Seconds 5

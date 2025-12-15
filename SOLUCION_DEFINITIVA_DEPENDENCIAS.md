@@ -85,21 +85,31 @@ BUILD_FLAGS                               UseExpressBuild
 
 ## 🚀 CÓMO DESPLEGAR CORRECTAMENTE
 
-### **Opción 1: Usar el script (RECOMENDADO)**
+### **Opción 1: Usar el script (OBLIGATORIO)**
 
 ```powershell
 .\deploy.ps1
 ```
 
-El script ahora configura automáticamente `WEBSITE_RUN_FROM_PACKAGE=1`.
+**⚠️ CRÍTICO:** El script es OBLIGATORIO porque:
+1. Configura `WEBSITE_RUN_FROM_PACKAGE=1` ANTES del despliegue
+2. **RECONFIGURA** las settings de storage DESPUÉS del despliegue
+3. El comando `func azure functionapp publish` **ELIMINA** automáticamente:
+   - `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`
+   - `WEBSITE_CONTENTSHARE`
+4. El script las vuelve a configurar después del despliegue
 
-### **Opción 2: Manual**
+### **Opción 2: Manual (NO RECOMENDADO)**
+
+**⚠️ ADVERTENCIA:** El despliegue manual es complicado porque `func azure functionapp publish` elimina automáticamente las configuraciones de storage.
+
+Si insistes en hacerlo manualmente:
 
 ```bash
 # 1. Limpiar archivos locales
 rm -rf .python_packages __pycache__
 
-# 2. Configurar todas las settings necesarias
+# 2. Configurar settings ANTES del despliegue
 az functionapp config appsettings set \
     --name suitechredsys \
     --resource-group rg-suitech-redsys \
@@ -111,7 +121,22 @@ az functionapp config appsettings set \
 
 # 3. Desplegar con Remote Build
 func azure functionapp publish suitechredsys --python --build remote
+
+# 4. CRÍTICO: Reconfigurar settings que se eliminaron
+STORAGE_ACCOUNT=$(az storage account list --resource-group rg-suitech-redsys --query "[0].name" -o tsv)
+CONN_STR=$(az storage account show-connection-string --name $STORAGE_ACCOUNT --resource-group rg-suitech-redsys --query "connectionString" -o tsv)
+
+az functionapp config appsettings set \
+    --name suitechredsys \
+    --resource-group rg-suitech-redsys \
+    --settings "AzureWebJobsStorage=$CONN_STR" \
+               "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING=$CONN_STR" \
+               "WEBSITE_CONTENTSHARE=suitechredsys" \
+               "WEBSITE_RUN_FROM_PACKAGE=1" \
+    --output none
 ```
+
+**Es mucho más fácil y seguro usar `.\deploy.ps1`**
 
 ---
 
@@ -201,11 +226,17 @@ func azure functionapp publish suitechredsys --python --build remote
 
 ---
 
-## 🚨 REGLA DE ORO
+## 🚨 REGLAS DE ORO
 
-**NUNCA elimines `WEBSITE_RUN_FROM_PACKAGE` o las configuraciones de CONTENT.**
+1. **SIEMPRE usa `.\deploy.ps1` para desplegar** - El comando manual elimina configuraciones críticas
 
-Si hay un conflicto durante el despliegue, la solución NO es eliminar estas configuraciones, sino asegurarse de que todas las configuraciones de storage estén correctas.
+2. **NUNCA uses directamente `func azure functionapp publish`** - Elimina automáticamente:
+   - `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`
+   - `WEBSITE_CONTENTSHARE`
+
+3. **Si olvidas usar el script**, las dependencias se perderán en el próximo reinicio
+
+4. **El script reconfigura automáticamente** las settings que el comando de despliegue elimina
 
 ---
 
