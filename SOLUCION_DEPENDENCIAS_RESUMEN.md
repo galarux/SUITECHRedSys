@@ -158,7 +158,28 @@ Después de aplicar esta solución:
 ---
 
 **Fecha de implementación:** 12/12/2025
-**Estado:** ✅ Solución completa implementada
+**Última actualización:** 15/12/2025
+**Estado:** ✅ Solución completa implementada y verificada
+
+## ⚠️ IMPORTANTE: Siempre usar el script de despliegue
+
+Para evitar que el problema vuelva a ocurrir, **SIEMPRE** usa el script de despliegue:
+
+```powershell
+# Windows
+.\deploy.ps1
+
+# Linux/Mac
+chmod +x deploy.sh
+./deploy.sh
+```
+
+Estos scripts garantizan que:
+- ✅ Se limpian archivos locales
+- ✅ Se configura Remote Build en Azure
+- ✅ Las dependencias se instalan correctamente
+- ✅ Las dependencias persisten después de reinicios
+
 
 
 
