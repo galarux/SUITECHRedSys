@@ -98,6 +98,8 @@ BUILD_FLAGS                               UseExpressBuild
    - `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`
    - `WEBSITE_CONTENTSHARE`
 4. El script las vuelve a configurar después del despliegue
+5. **REINICIA** la Function App para aplicar todos los cambios
+6. **VERIFICA** que las dependencias estén instaladas correctamente
 
 ### **Opción 2: Manual (NO RECOMENDADO)**
 
@@ -142,6 +144,8 @@ az functionapp config appsettings set \
 
 ## 🔍 SEÑALES DE QUE FUNCIONA CORRECTAMENTE
 
+### Durante el despliegue:
+
 En los logs del despliegue, debes ver:
 
 ```
@@ -154,6 +158,25 @@ Uploading built content /home/site/artifacts/functionappartifact.squashfs for li
 - ✅ Se creó el paquete squashfs
 - ✅ Se subió a Azure Files
 - ✅ Azure ejecutará desde el paquete
+
+### Después del despliegue:
+
+El script `deploy.ps1` realiza verificaciones automáticas:
+
+```
+🔄 Reiniciando Function App...
+   ✅ Function App reiniciada
+   ⏳ Esperando a que la app esté lista (30 segundos)...
+
+🔍 Verificando dependencias instaladas...
+   📡 Realizando petición de prueba...
+   ✅ Función responde correctamente (código: 401)
+   ✅ Las dependencias están instaladas correctamente
+```
+
+**Códigos de respuesta esperados:**
+- `200`, `400`, `401` = ✅ Función cargó correctamente (dependencias OK)
+- `500`, `502`, `503` = ❌ Error de servidor (posible problema con dependencias)
 
 ---
 

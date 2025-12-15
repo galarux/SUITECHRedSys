@@ -44,10 +44,38 @@ Azure Functions en Python que conectan Business Central con RedSys.
 3. Arranca: `func start`.
 4. Endpoints locales: `http://localhost:7071/api/DecryptAndRedirect` y `http://localhost:7071/api/PaygoldLink`.
 
-## Despliegue rápido
-```bash
-func azure functionapp publish suitechredsys --python
+## Despliegue
+
+### ⚠️ IMPORTANTE: Usar SIEMPRE el script de despliegue
+
+```powershell
+# Windows
+.\deploy.ps1
+
+# Linux/Mac
+./deploy.sh
 ```
+
+### ❌ NO usar el comando directo
+
+```bash
+# ❌ NO HACER ESTO:
+func azure functionapp publish suitechredsys --python
+
+# ⚠️ Este comando elimina configuraciones críticas y causa ModuleNotFoundError
+```
+
+### ¿Por qué usar el script?
+
+1. **Elimina `WEBSITE_RUN_FROM_PACKAGE`** antes del despliegue (incompatible con Remote Build)
+2. **Configura Remote Build** para instalar dependencias en Azure
+3. **Reconfigura settings de persistencia** que el comando de despliegue elimina
+4. **Reinicia la app** y verifica que las dependencias estén instaladas
+5. **Garantiza persistencia** de dependencias después de reinicios
+
+### Documentación completa
+
+Ver `SOLUCION_FINAL_DEPENDENCIAS.md` para detalles técnicos completos.
 Variables obligatorias en la Function App: `AzureWebJobsStorage`, `REDSYS_SHA256_KEY`, `REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_REST_URL` y `REDSYS_NOTIFICATION_URL`.
 
 ## Utilidades
