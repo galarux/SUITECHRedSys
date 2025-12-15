@@ -26,6 +26,7 @@ az functionapp config appsettings set \
     --settings "SCM_DO_BUILD_DURING_DEPLOYMENT=true" \
                "ENABLE_ORYX_BUILD=true" \
                "BUILD_FLAGS=UseExpressBuild" \
+               "WEBSITE_RUN_FROM_PACKAGE=1" \
     --output none || echo "   ⚠️  No se pudo configurar Remote Build (puede que ya esté configurado)"
 echo "   ✅ Remote Build configurado"
 echo ""

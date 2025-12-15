@@ -39,6 +39,7 @@ try {
         --settings "SCM_DO_BUILD_DURING_DEPLOYMENT=true" `
                    "ENABLE_ORYX_BUILD=true" `
                    "BUILD_FLAGS=UseExpressBuild" `
+                   "WEBSITE_RUN_FROM_PACKAGE=1" `
         --output none
     Write-Host "   ✅ Remote Build configurado" -ForegroundColor Green
 } catch {
